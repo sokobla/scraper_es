@@ -1,0 +1,13 @@
+categorie:
+ - name: "Gym"
+   description: "All about fitness and workouts."
+   image: "gym.jpg"
+ - name: "depósito"
+   description: "Delicious recipes and cooking tips."
+   image: "depósito.jpg"
+ - name: "cochera"
+   description: "Latest news and reviews on gadgets and tech."
+   image: "cochera.jpg"
+ - name: "almacenar"
+   description: "Travel guides and tips for your next adventure."
+   image: "almacenar.jpg"
