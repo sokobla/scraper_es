@@ -1,13 +1,73 @@
+database:
+  url: "postgresql://scrapper_user:scrapper_password@localhost:5432/scrapper_db"
+scraper:
+  base_url: "https://www.paginasamarillas.es/search/"
+
 categorie:
- - name: "Gym"
-   description: "All about fitness and workouts."
-   image: "gym.jpg"
- - name: "depósito"
-   description: "Delicious recipes and cooking tips."
-   image: "depósito.jpg"
- - name: "cochera"
-   description: "Latest news and reviews on gadgets and tech."
-   image: "cochera.jpg"
- - name: "almacenar"
-   description: "Travel guides and tips for your next adventure."
-   image: "almacenar.jpg"
+  - name: "Industria y producción"
+    description: "Fábricas de fabricación y talleres de ensamblaje con almacenamiento de materias primas y productos terminados (automoción, textil, agroalimentario, electrónica)."
+    image: "industrie_production.jpg"
+
+  - name: "Logística y transporte"
+    description: "Plataformas logísticas, centros regionales, almacenes de tránsito y operadores 3PL que gestionan grandes flujos de palés y paquetes."
+    image: "logistique_transport.jpg"
+
+  - name: "Comercio mayorista"
+    description: "Mayoristas y distribuidores B2B que almacenan grandes cantidades de mercancías (alimentación, repuestos de autos, materiales, suministros)."
+    image: "commerce_gros.jpg"
+
+  - name: "Centrales de compra y distribución"
+    description: "Centrales que abastecen redes de tiendas o franquicias, con almacenes de distribución regionales o nacionales."
+    image: "centrale_achat_distribution.jpg"
+
+  - name: "Comercio electrónico"
+    description: "Centros de preparación de pedidos para tiendas en línea, con zonas de picking, embalaje y expedición."
+    image: "ecommerce_entrepot.jpg"
+
+  - name: "Gran distribución"
+    description: "Almacenes que abastecen hipermercados y cadenas especializadas, a menudo de clase A o B con gran superficie de almacenamiento."
+    image: "grande_distribution.jpg"
+
+  - name: "Almacenes frigoríficos"
+    description: "Instalaciones de almacenamiento a temperatura controlada (frío positivo o negativo) para productos frescos y congelados."
+    image: "entrepots_frigorifiques.jpg"
+
+  - name: "Agroalimentario y agrícola"
+    description: "Cooperativas, silos y almacenes de granel para cereales, piensos y productos agroalimentarios."
+    image: "agroalimentaire_agricole.jpg"
+
+  - name: "Materiales y construcción"
+    description: "Comercios de materiales de construcción con almacenamiento de madera, acero, cemento, baldosas y equipos de obra."
+    image: "materiaux_btp.jpg"
+
+  - name: "Alquiler de maquinaria industrial"
+    description: "Empresas de alquiler de máquinas, equipos de obra y equipos industriales que necesitan grandes naves de almacenamiento."
+    image: "location_materiel_industriel.jpg"
+
+  - name: "Química y productos peligrosos"
+    description: "Almacenes dedicados a productos químicos, pinturas y disolventes, con zonas seguras y normativa específica."
+    image: "chimie_produits_dangereux.jpg"
+
+  - name: "Farmacia y material médico"
+    description: "Laboratorios y distribuidores farmacéuticos que almacenan medicamentos, consumibles y dispositivos médicos."
+    image: "pharmacie_materiel_medical.jpg"
+
+  - name: "Importación-exportación y aduana"
+    description: "Almacenes bajo control aduanero y plataformas de importación-exportación, a menudo cerca de puertos, aeropuertos o zonas francas."
+    image: "import_export_douane.jpg"
+
+  - name: "Logística portuaria y contenedores"
+    description: "Operadores de terminales de contenedores y almacenes portuarios para mercancías diversas en tránsito."
+    image: "logistique_portuaire_conteneurs.jpg"
+
+  - name: "Mobiliario y equipamiento del hogar"
+    description: "Empresas que almacenan muebles, decoración y grandes volúmenes con rotación más bien lenta en amplias superficies."
+    image: "mobilier_ameublement.jpg"
+
+  - name: "Papel, embalaje y suministros"
+    description: "Fabricantes y distribuidores de papel, cartón, embalajes y suministros de oficina a gran escala."
+    image: "papier_emballage_fournitures.jpg"
+
+  - name: "Equipamiento para eventos"
+    description: "Empresas de eventos que almacenan estructuras, stands, mobiliario, escenarios y equipos audiovisuales."
+    image: "equipements_evenementiels.jpg"

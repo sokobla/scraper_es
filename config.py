@@ -1,30 +1,18 @@
-import json
-from extensions import db
-from models.result_model import Result
-from persistence.result_repository import ResultRepository
+import yaml
+import os
 
-class ResultService:
-    def __init__(self, repository=None):
-        self.repository = repository or ResultRepository()
 
-    def save_many(self, items: list[dict]):
-        saved = []
+def load_config():
+    # Construit un chemin absolu vers config.yml pour éviter les erreurs
+    config_path = os.path.join(os.path.dirname(__file__), "config.yml")
+    with open(config_path, "r", encoding="utf-8") as f:
+        return yaml.safe_load(f)
 
-        for item in items:
-            if not item.get("source") or not item.get("title"):
-                continue
+def load_config_with_env_override():
+    cfg = load_config()
+    # Prioriser la variable d'environnement DATABASE_URL si elle est définie
+    if "DATABASE_URL" in os.environ:
+        cfg["database"]["url"] = os.environ["DATABASE_URL"]
+    return cfg
 
-            entity = Result(
-                source=item["source"],
-                title=item["title"],
-                url=item.get("url"),
-                score=item.get("score"),
-                raw_payload=json.dumps(item.get("raw_payload"), ensure_ascii=False)
-                if item.get("raw_payload") is not None else None
-            )
-
-            self.repository.add(entity)
-            saved.append(entity)
-
-        db.session.commit()
-        return saved
+config = load_config_with_env_override()

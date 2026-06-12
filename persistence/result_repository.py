@@ -1,3 +1,5 @@
+from typing import Optional
+
 from sqlalchemy import select, tuple_
 from sqlalchemy.orm import Session
 
@@ -12,7 +14,7 @@ class ResultRepository:
         stmt = select(Result).order_by(Result.id.desc())
         return list(session.scalars(stmt).all())
 
-    def exists_by_title_and_url(self, session: Session, title: str, url: str | None) -> bool:
+    def exists_by_title_and_url(self, session: Session, title: str, url: Optional[str]) -> bool:
         stmt = select(Result).where(Result.title == title, Result.url == url)
         return session.execute(stmt).scalar_one_or_none() is not None
 

@@ -1,0 +1,48 @@
+version: '3.8'
+
+services:
+  scraper:
+    build: .
+    # 🔥 Wait for PostgreSQL to be HEALTHY before starting scraper
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      # 🔥 Use 'db' as hostname (Docker DNS resolves it)
+      - DATABASE_URL=postgresql://scrapper_user:scrapper_password@db:5432/scrapper_db
+      - LOG_LEVEL=INFO
+    volumes:
+      - ./config.yml:/app/config.yml
+    restart: on-failure:3  # Restart up to 3 times if it fails
+    # Add healthcheck so container orchestration knows when scraper is ready
+    healthcheck:
+      test: ["CMD", "python", "-c", "from database.session import wait_for_db; import asyncio; asyncio.run(wait_for_db(max_retries=5))"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  db:
+    image: postgres:15-alpine  # Keep original version if data exists
+    restart: always
+    ports:
+      - "5432:5432"  # Expose for local debugging if needed
+    environment:
+      POSTGRES_DB: scrapper_db
+      POSTGRES_USER: scrapper_user
+      POSTGRES_PASSWORD: scrapper_password
+      # PostgreSQL startup optimization
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8 --locale=C"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    # 🔥 CRITICAL: PostgreSQL healthcheck so docker knows when it's ready
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U scrapper_user -d scrapper_db"]
+      interval: 5s           # Check every 5 seconds
+      timeout: 5s            # Timeout if check takes >5s
+      retries: 5             # Fail after 5 failed checks
+      start_period: 10s      # Give PostgreSQL 10s to start before first check
+
+volumes:
+  db_data:
+    driver: local

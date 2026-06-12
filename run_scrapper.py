@@ -2,7 +2,7 @@ import asyncio
 from pathlib import Path
 import yaml
 
-from database.session import init_db
+from database.session import init_db, wait_for_db, close_db
 from scraper.scraper_runner import ScraperRunner
 from utils.logger import build_logger
 
@@ -40,6 +40,11 @@ def load_categories_from_config(config_path: str = "config.yml") -> list[dict]:
     return normalized
 
 async def main():
+    # 🔥 Wait for PostgreSQL to be ready BEFORE trying to initialize
+    logger.info("⏳ Waiting for PostgreSQL to be ready...")
+    await wait_for_db()
+
+    # Now safe to create tables
     init_db()
     categories = load_categories_from_config("config.yml")
 
@@ -49,7 +54,7 @@ async def main():
 
     logger.info(f"{len(categories)} catégorie(s) chargée(s) depuis config.yml")
 
-    runner = ScraperRunner(headless=True, max_pages=3)
+    runner = ScraperRunner(headless=True, max_pages=999)
 
     for index, category in enumerate(categories, start=1):
         logger.info("-" * 80)
@@ -63,5 +68,15 @@ async def main():
         except Exception as exc:
             logger.error(f"[ERROR] Échec scraping pour {category['name']}: {exc}")
 
+    # 🔥 Clean up database connections
+    close_db()
+    logger.info("✅ Application terminée avec succès")
+
+
 if __name__ == "__main__":
-    asyncio.run(main())
+    try:
+        asyncio.run(main())
+    except Exception as e:
+        logger.error(f"❌ Application failed: {e}")
+        close_db()
+        exit(1)

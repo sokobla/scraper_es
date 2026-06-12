@@ -1,7 +1,9 @@
 from urllib.parse import quote_plus
 import re
+from typing import Optional
 
 from utils.logger import build_logger
+from config import config
 
 logger = build_logger()
 
@@ -18,20 +20,20 @@ class ContactScraper:
 
     def build_search_url(self, category_name: str, page_number: int = 1) -> str:
         slug = quote_plus(category_name.strip().lower())
+        base_url = config["scraper"]["base_url"]
         return (
-            f"https://www.paginasamarillas.es/search/"
-            f"{slug}/all-ma/all-pr/all-is/all-ci/all-ba/all-pu/all-nc/{page_number}"
+            f"{base_url}{slug}/all-ma/all-pr/all-is/all-ci/all-ba/all-pu/all-nc/{page_number}"
             f"?what={slug}&qc=true"
         )
 
-    def normalize_text(self, value: str | None) -> str | None:
+    def normalize_text(self, value: Optional[str]) -> Optional[str]:
         if value is None:
             return None
 
         cleaned = re.sub(r"\s+", " ", value).strip()
         return cleaned or None
 
-    async def safe_inner_text(self, locator) -> str | None:
+    async def safe_inner_text(self, locator) -> Optional[str]:
         try:
             count = await locator.count()
             if count == 0:
@@ -42,7 +44,7 @@ class ContactScraper:
         except Exception:
             return None
 
-    async def reveal_phone(self, card, category_name: str, page_number: int, card_index: int) -> str | None:
+    async def reveal_phone(self, card, category_name: str, page_number: int, card_index: int) -> Optional[str]:
         phone_locator = card.locator('[itemprop="telephone"]')
         existing_phone = await self.safe_inner_text(phone_locator)
         if existing_phone:
@@ -91,7 +93,7 @@ class ContactScraper:
 
         return await self.safe_inner_text(phone_locator)
 
-    async def extract_card_data(self, card, category: dict, page_number: int, card_index: int, page_url: str) -> dict | None:
+    async def extract_card_data(self, card, category: dict, page_number: int, card_index: int, page_url: str) -> Optional[dict]:
         category_name = category.get("name", "unknown")
 
         name = await self.safe_inner_text(card.locator('[itemprop="name"]'))
@@ -142,31 +144,43 @@ class ContactScraper:
             logger.info(f"[{category_name}] Navigation vers page {page_number}: {url}")
 
             await self.page.goto(url, wait_until="domcontentloaded", timeout=60000)
+            
+            no_results_locator = self.page.get_by_text("Lo sentimos pero no hemos encontrado lo que estabas buscando.")
+            if await no_results_locator.count() > 0:
+                logger.info(
+                    f"[{category_name}] Dernière page atteinte (page {page_number}). "
+                    "Arrêt du scraping pour cette catégorie."
+                )
+                break
 
-            cards_locator = self.page.locator(".listado-item")
-            await cards_locator.first.wait_for(state="attached", timeout=10000)
+            try:
+                cards_locator = self.page.locator(".listado-item")
+                await cards_locator.first.wait_for(state="attached", timeout=10000)
 
-            cards = await cards_locator.all()
-            logger.info(
-                f"[{category_name}] Fiches détectées page {page_number}: {len(cards)}"
-            )
+                cards = await cards_locator.all()
+                logger.info(
+                    f"[{category_name}] Fiches détectées page {page_number}: {len(cards)}"
+                )
 
-            for index, card in enumerate(cards, start=1):
-                try:
-                    item = await self.extract_card_data(
-                        card=card,
-                        category=category,
-                        page_number=page_number,
-                        card_index=index,
-                        page_url=url,
-                    )
-                    if item:
-                        all_results.append(item)
-                except Exception as exc:
-                    logger.warning(
-                        f"[{category_name}] [page {page_number}] "
-                        f"[fiche {index}] Extraction ignorée: {exc}"
-                    )
+                for index, card in enumerate(cards, start=1):
+                    try:
+                        item = await self.extract_card_data(
+                            card=card,
+                            category=category,
+                            page_number=page_number,
+                            card_index=index,
+                            page_url=url,
+                        )
+                        if item:
+                            all_results.append(item)
+                    except Exception as exc:
+                        logger.warning(
+                            f"[{category_name}] [page {page_number}] "
+                            f"[fiche {index}] Extraction ignorée: {exc}"
+                        )
+            except Exception:
+                logger.info(f"[{category_name}] Aucune fiche sur la page {page_number}, arrêt.")
+                break
 
         logger.info(
             f"[{category_name}] Extraction terminée: {len(all_results)} résultats"
